@@ -19,7 +19,6 @@ import string
 import re
 import nltk
 
-spacy.cli.download('fr_core_news_sm')
 nltk.download('stopwords', quiet=True)
 
 # Configuration de la page
