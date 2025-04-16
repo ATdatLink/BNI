@@ -19,6 +19,7 @@ import string
 import re
 import nltk
 
+nltk.download('stopwords', quiet=True)
 
 # Configuration de la page
 st.set_page_config(
