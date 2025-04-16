@@ -11,6 +11,16 @@ from collections import Counter
 from streamlit_option_menu import option_menu
 import base64
 from io import BytesIO
+import spacy
+import sys
+import subprocess
+from nltk.corpus import stopwords
+import string
+import re
+import nltk
+
+spacy.cli.download('fr_core_news_sm')
+nltk.download('stopwords', quiet=True)
 
 # Configuration de la page
 st.set_page_config(
