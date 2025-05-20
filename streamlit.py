@@ -11,15 +11,6 @@ from collections import Counter
 from streamlit_option_menu import option_menu
 import base64
 from io import BytesIO
-import spacy
-import sys
-import subprocess
-from nltk.corpus import stopwords
-import string
-import re
-import nltk
-
-nltk.download('stopwords', quiet=True)
 
 # Configuration de la page
 st.set_page_config(
@@ -342,7 +333,7 @@ def prepare_data(df):
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     
     # Filtrer les dates avant 01/04/2024
-    df = df[df['date'] >= datetime.datetime(2024, 4, 1)]
+    df = df[df['date'] >= datetime.datetime(2025, 1, 1)]
     
     # Nettoyer les listes dans les colonnes
     list_columns = ['entreprises_mentionnees', 'personnalites_mentionnees', 
@@ -682,13 +673,18 @@ def main():
     """)
     
     # Uploader le fichier
-    uploaded_file = st.file_uploader("Importer un fichier CSV", type=["csv"])
+    uploaded_file = st.file_uploader("Importer un fichier CSV", type=["csv", "xlsx"])
     
     if uploaded_file is not None:
-        # Charger et préparer les données
+        # Charger et préparer les données csv ou xlsx
         try:
-            df = pd.read_csv(uploaded_file, delimiter=',')
-            df = prepare_data(df)
+            if uploaded_file.name.endswith('.xlsx'):
+                df = pd.read_excel(uploaded_file, engine='openpyxl')
+                df = prepare_data(df)
+            else:
+                df = pd.read_csv(uploaded_file, delimiter=',')
+                df = prepare_data(df)
+
             
             # Navigation principale
             selected = option_menu(
@@ -731,7 +727,7 @@ def main():
                     )
             
             with col3:
-                entity_columns = ['entreprises_mentionnees', 'personnalites_mentionnees', 
+                entity_columns = ['type_source','entreprises_mentionnees', 'personnalites_mentionnees', 
                                  'organisations_institutions']
                 available_columns = [col for col in entity_columns if col in df.columns]
                 
@@ -937,6 +933,7 @@ def main():
                 if 'nom_cluster_paradigmatique' in filtered_df.columns:
                     # Filtrer les narratifs pour exclure "Bruit"
                     filtered_df = filtered_df[filtered_df['nom_cluster_paradigmatique'] != 'Bruit']
+                    filtered_df = filtered_df[filtered_df['nom_cluster_paradigmatique'] != 'Non classifié']
                     narratif_counts = filtered_df['nom_cluster_paradigmatique'].value_counts().reset_index().head(20)
                     narratif_counts.columns = ['Narratif', 'Nombre']
                     
@@ -1248,6 +1245,9 @@ def main():
                                     
                                 if 'nom_cluster_paradigmatique' in narratif_df.columns:
                                     display_columns.append('nom_cluster_paradigmatique')
+
+                                if 'narratif_paradigmatique' in narratif_df.columns:
+                                    display_columns.append('narratif_paradigmatique')
                                     
                                 # Vérifier qu'il y a des colonnes à afficher
                                 if display_columns:
