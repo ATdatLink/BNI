@@ -1231,8 +1231,12 @@ def main():
                                 display_columns = []
                                 if 'titre' in narratif_df.columns:
                                     display_columns.append('titre')
+
                                 elif 'title' in narratif_df.columns:
                                     display_columns.append('title')
+
+                                if 'date' in narratif_df.columns:
+                                    display_columns.append('date')
                                     
                                 if 'url' in narratif_df.columns:
                                     display_columns.append('url')
