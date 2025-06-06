@@ -925,16 +925,15 @@ def main():
                     if titles:
                         wordcloud_html = generate_wordcloud(titles, colormap='Blues', background_color='white')
                         st.markdown(wordcloud_html, unsafe_allow_html=True)
-            
+                        
             elif selected == "Narratifs":
                 st.markdown(section_header("Analyse des narratifs"), unsafe_allow_html=True)
                 
                 # Analyse du top 20 des narratifs paradigmatiques sauf le narratif "Bruit"
                 if 'nom_cluster_paradigmatique' in filtered_df.columns:
-                    # Filtrer les narratifs pour exclure "Bruit"
-                    filtered_df = filtered_df[filtered_df['nom_cluster_paradigmatique'] != 'Bruit']
-                    filtered_df = filtered_df[filtered_df['nom_cluster_paradigmatique'] != 'Non classifié']
-                    narratif_counts = filtered_df['nom_cluster_paradigmatique'].value_counts().reset_index().head(20)
+                    # Filtrer les narratifs pour exclure "Bruit" et "Non classifié"
+                    filtered_narratifs = filtered_df[~filtered_df['nom_cluster_paradigmatique'].isin(['Bruit', 'Non classifié'])]
+                    narratif_counts = filtered_narratifs['nom_cluster_paradigmatique'].value_counts().reset_index().head(20)
                     narratif_counts.columns = ['Narratif', 'Nombre']
                     
                     fig = px.bar(
@@ -961,12 +960,60 @@ def main():
                             font_family="Arial"
                         ),
                         margin=dict(l=10, r=10, t=50, b=10),
-                        height=600  # Hauteur ajustée pour les 20 narratifs
+                        height=600
                     )
                     
                     fig.update_yaxes(categoryorder='total ascending')
-                    
                     st.plotly_chart(fig, use_container_width=True)
+
+                # Export des narratifs
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown(section_header("Export des narratifs", "gradient-blue"), unsafe_allow_html=True)
+                
+                if 'nom_cluster_paradigmatique' in filtered_df.columns:
+                    # Préparer le DataFrame avec title et url (ajustez le nom de la colonne URL selon votre DataFrame)
+                    # Remplacez 'url' par le nom exact de votre colonne URL
+                    narratifs_data = filtered_narratifs[['nom_cluster_paradigmatique', 'title', 'url']].dropna()
+                    
+                    # Grouper par narratif et créer les listes d'articles avec URLs
+                    narratifs_grouped = narratifs_data.groupby('nom_cluster_paradigmatique').agg({
+                        'title': lambda x: list(x),
+                        'url': lambda x: list(x)
+                    }).reset_index()
+                    
+                    # Renommer les colonnes
+                    narratifs_grouped.columns = ['Narratif', 'Articles', 'URLs']
+                    
+                    # Ajouter le nombre d'articles
+                    narratifs_grouped['Nombre_articles'] = narratifs_grouped['Articles'].apply(len)
+                    
+                    # Formater la liste des articles avec numérotation et URLs
+                    narratifs_grouped['liste_articles'] = narratifs_grouped.apply(
+                        lambda row: ' | '.join([
+                            f'[{i+1}] {article} [lien]{url}' 
+                            for i, (article, url) in enumerate(zip(row['Articles'], row['URLs']))
+                        ]), axis=1
+                    )
+                    
+                    # Supprimer les colonnes temporaires et réorganiser
+                    narratifs_export = narratifs_grouped[['Narratif', 'Nombre_articles', 'liste_articles']].copy()
+                    
+                    # Trier par nombre d'articles décroissant
+                    narratifs_export = narratifs_export.sort_values('Nombre_articles', ascending=False)
+                    
+                    # Créer le fichier Excel en mémoire
+                    from io import BytesIO
+                    excel_buffer = BytesIO()
+                    narratifs_export.to_excel(excel_buffer, index=False)
+                    excel_data = excel_buffer.getvalue()
+                    
+                    st.download_button(
+                        label="Télécharger l'export des narratifs",
+                        data=excel_data,
+                        file_name="narratifs_export.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+
                 
                 # Évolution des principaux narratifs dans le temps avec sélection
                 if 'nom_cluster_paradigmatique' in filtered_df.columns:
