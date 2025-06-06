@@ -1108,8 +1108,8 @@ def main():
                     
                     if 'nom_cluster_paradigmatique' in filtered_df.columns:
                         # Compter les occurrences de chaque narratif et les trier par fréquence
-                        # narratif_counts = filtered_df['nom_cluster_paradigmatique'].value_counts()
-                        narratif_counts = filtered_df[~filtered_df['nom_cluster_paradigmatique'].isin(['Bruit', 'Non classifié'])].value_counts()
+                        filtered_narratifs = filtered_df[~filtered_df['nom_cluster_paradigmatique'].isin(['Bruit', 'Non classifié'])].value_counts()
+                        narratif_counts = filtered_narratifs['nom_cluster_paradigmatique'].value_counts()
                         
                         # Créer une liste ordonnée des narratifs (du plus fréquent au moins fréquent)
                         all_narratifs = narratif_counts.index.tolist()
