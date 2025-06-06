@@ -925,7 +925,7 @@ def main():
                     if titles:
                         wordcloud_html = generate_wordcloud(titles, colormap='Blues', background_color='white')
                         st.markdown(wordcloud_html, unsafe_allow_html=True)
-                        
+
             elif selected == "Narratifs":
                 st.markdown(section_header("Analyse des narratifs"), unsafe_allow_html=True)
                 
@@ -1108,7 +1108,8 @@ def main():
                     
                     if 'nom_cluster_paradigmatique' in filtered_df.columns:
                         # Compter les occurrences de chaque narratif et les trier par fréquence
-                        narratif_counts = filtered_df['nom_cluster_paradigmatique'].value_counts()
+                        # narratif_counts = filtered_df['nom_cluster_paradigmatique'].value_counts()
+                        narratif_counts = filtered_df[~filtered_df['nom_cluster_paradigmatique'].isin(['Bruit', 'Non classifié'])].value_counts()
                         
                         # Créer une liste ordonnée des narratifs (du plus fréquent au moins fréquent)
                         all_narratifs = narratif_counts.index.tolist()
